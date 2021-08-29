@@ -16,6 +16,9 @@ This project adheres to [Semantic Versioning](http://semver.org/) and [Keep a Ch
 * [#69](https://gitlab.com/gitlab-data/permifrost/-/issues/69)
 Adds quote_plus to the SnowflakeConnector to resolve possible connection issues caused by complex passwords.
 
+* [#80](https://gitlab.com/gitlab-data/permifrost/-/issues/80)
+Future grants on tables and views are granted on the database level.
+
 ### Breaks
 
 

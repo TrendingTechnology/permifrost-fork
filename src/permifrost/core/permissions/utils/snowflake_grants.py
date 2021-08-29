@@ -918,6 +918,55 @@ class SnowflakeGrantsGenerator:
 
             fetched_schemas = conn.full_schema_list(f"{name_parts[0]}.{name_parts[1]}")
 
+            # For future grants at the database level
+            future_database_table = "{database}.<table>".format(database=name_parts[0])
+            future_database_view = "{database}.<view>".format(database=name_parts[0])
+
+            table_already_granted = False
+            view_already_granted = False
+
+            if self.check_grant_to_role(
+                role, read_privileges, "table", future_database_table
+            ):
+                table_already_granted = True
+
+            read_grant_tables_full.append(future_database_table)
+
+            if name_parts[1] == "*" and name_parts[2] == "*":
+                sql_commands.append(
+                    {
+                        "already_granted": table_already_granted,
+                        "sql": GRANT_FUTURE_PRIVILEGES_TEMPLATE.format(
+                            privileges=read_privileges,
+                            resource_type="table",
+                            grouping_type="database",
+                            grouping_name=SnowflakeConnector.snowflaky(name_parts[0]),
+                            role=SnowflakeConnector.snowflaky(role),
+                        ),
+                    }
+                )
+
+            if self.check_grant_to_role(
+                role, read_privileges, "view", future_database_view
+            ):
+                view_already_granted = True
+
+            read_grant_views_full.append(future_database_view)
+
+            if name_parts[1] == "*" and name_parts[2] == "*":
+                sql_commands.append(
+                    {
+                        "already_granted": view_already_granted,
+                        "sql": GRANT_FUTURE_PRIVILEGES_TEMPLATE.format(
+                            privileges=read_privileges,
+                            resource_type="view",
+                            grouping_type="database",
+                            grouping_name=SnowflakeConnector.snowflaky(name_parts[0]),
+                            role=SnowflakeConnector.snowflaky(role),
+                        ),
+                    }
+                )
+
             for schema in fetched_schemas:
                 # Fetch all tables from Snowflake for each schema and add
                 # to the read_tables_list[] and read_views_list[] variables.
@@ -1056,6 +1105,55 @@ class SnowflakeGrantsGenerator:
             write_view_list = []
 
             fetched_schemas = conn.full_schema_list(f"{name_parts[0]}.{name_parts[1]}")
+
+            # For future grants at the database level
+            future_database_table = "{database}.<table>".format(database=name_parts[0])
+            future_database_view = "{database}.<view>".format(database=name_parts[0])
+
+            table_already_granted = False
+            view_already_granted = False
+
+            if self.check_grant_to_role(
+                role, write_privileges, "table", future_database_table
+            ):
+                table_already_granted = True
+
+            write_grant_tables_full.append(future_database_table)
+
+            if name_parts[1] == "*" and name_parts[2] == "*":
+                sql_commands.append(
+                    {
+                        "already_granted": table_already_granted,
+                        "sql": GRANT_FUTURE_PRIVILEGES_TEMPLATE.format(
+                            privileges=write_privileges,
+                            resource_type="table",
+                            grouping_type="database",
+                            grouping_name=SnowflakeConnector.snowflaky(name_parts[0]),
+                            role=SnowflakeConnector.snowflaky(role),
+                        ),
+                    }
+                )
+
+            if self.check_grant_to_role(
+                role, write_privileges, "view", future_database_view
+            ):
+                view_already_granted = True
+
+            write_grant_views_full.append(future_database_view)
+
+            if name_parts[1] == "*" and name_parts[2] == "*":
+                sql_commands.append(
+                    {
+                        "already_granted": view_already_granted,
+                        "sql": GRANT_FUTURE_PRIVILEGES_TEMPLATE.format(
+                            privileges=write_privileges,
+                            resource_type="view",
+                            grouping_type="database",
+                            grouping_name=SnowflakeConnector.snowflaky(name_parts[0]),
+                            role=SnowflakeConnector.snowflaky(role),
+                        ),
+                    }
+                )
 
             for schema in fetched_schemas:
                 # Fetch all tables from Snowflake for each schema and add
@@ -1256,7 +1354,9 @@ class SnowflakeGrantsGenerator:
             view_name = view_split[-1]
 
             # For future grants at the database level
-            if len(view_split) == 2:
+            if len(view_split) == 2 or (
+                len(table_split) == 3 and table_split[1] == "*"
+            ):
                 future_view = f"{database_name}.<view>"
                 grouping_type = "database"
                 grouping_name = database_name
@@ -1273,6 +1373,11 @@ class SnowflakeGrantsGenerator:
                 # Don't revoke on privileges on databases not defined in spec.
                 continue
             elif granted_view == future_view and future_view not in all_grant_views:
+                print("*" * 100)
+                print(granted_view)
+                print(future_view)
+                print(all_grant_views)
+                print("=" * 100)
                 # If future privilege is granted in Snowflake but not in grant list
                 sql_commands.append(
                     {
@@ -1323,7 +1428,9 @@ class SnowflakeGrantsGenerator:
             table_name = table_split[-1]
 
             # For future grants at the database level
-            if len(table_split) == 2:
+            if len(table_split) == 2 or (
+                len(table_split) == 3 and table_split[1] == "*"
+            ):
                 future_table = f"{database_name}.<table>"
                 grouping_type = "database"
                 grouping_name = database_name
