@@ -91,6 +91,9 @@ local-show-lint:
 requirements.txt: setup.py
 	pip freeze --exclude-editable > $@
 
+install-dev:
+	pip install -e '.[dev]'
+
 # Release
 ifdef type
   override type := --$(type)
