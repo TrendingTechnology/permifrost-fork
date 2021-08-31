@@ -18,14 +18,16 @@ requires = [
 ]
 
 dev_requires = [
-    "black==18.9b0",
-    "bumpversion==0.5.3",
-    "changelog-cli==0.6.2",
-    "coverage==4.5.4",
-    "mypy==0.780",
-    "pytest==4.3.1",
-    "pytest-cov==2.6.1",
-    "pytest-mock==3.2.0"
+    "black",
+    "bumpversion",
+    "changelog-cli",
+    "coverage",
+    "flake8",
+    "mypy",
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+    "types-PyYAML",
 ]
 
 setup(
